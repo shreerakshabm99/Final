@@ -25,15 +25,7 @@ export default function Sidebar({ collapsed, setCollapsed, setActivePage, notifi
       {/* Sidebar Menu */}
       <ul className="sidebar-list">
         {/* Home */}
-        <li
-          className="sidebar-list-item"
-          onClick={() => setActivePage("home")}
-        >
-          <BsHouseDoor className="icon" />
-          {!collapsed && <span>Home</span>}
-        </li>
-
-        {/* Posts */}
+        
         <li
           className="sidebar-list-item"
           onClick={() => setActivePage("posts")}

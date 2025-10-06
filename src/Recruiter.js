@@ -2,14 +2,13 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
-import Home from "./Home";
 import Posts from "./Posts";
 import Notifications from "./Notifications";
 import Profile from "./Profile";
 
 function Recruiter() {
   const [collapsed, setCollapsed] = useState(false);
-  const [activePage, setActivePage] = useState("home");
+  const [activePage, setActivePage] = useState("posts");
   const [profileOpen, setProfileOpen] = useState(false);
   const [posts, setPosts] = useState([]);
   const [notifications, setNotifications] = useState([]); // all notifications (history)
@@ -28,8 +27,6 @@ function Recruiter() {
 
     const renderContent = () => {
       switch (activePage) {
-        case "home":
-          return <Home />;
         case "posts":
           return <Posts />;
         case "notifications":
@@ -37,7 +34,7 @@ function Recruiter() {
           if (unreadCount > 0) setUnreadCount(0);
           return <Notifications notifications={notifications} />;
         default:
-          return <Home />;
+          return <Posts/>;
       }
     };
 

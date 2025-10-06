@@ -1,36 +1,38 @@
 // File: SeekerHome.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import SeekerProfile from "./SeekerProfile"; // your profile component
 
 export default function SeekerHome() {
   const [posts, setPosts] = useState([]);
   const [appliedPosts, setAppliedPosts] = useState([]);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const userId = localStorage.getItem("userId");
 
   useEffect(() => {
+    // fetch all posts
     axios.get("http://localhost:3001/posts").then(res => setPosts(res.data));
 
-    // keep track of posts this seeker already applied to
-    axios.get(`http://localhost:3001/seekerProfile?userId=${userId}`)
-      .then(res => {
-        const seeker = res.data[0];
-        setAppliedPosts(seeker.appliedPosts || []);
-      });
+    // fetch seeker profile to track applied posts
+    axios.get(`http://localhost:3001/seekerProfile?userId=${userId}`).then(res => {
+      const seeker = res.data[0];
+      setAppliedPosts(seeker.appliedPosts || []);
+    });
   }, [userId]);
 
   const handleApply = async (post) => {
     const seekerRes = await axios.get(`http://localhost:3001/seekerProfile?userId=${userId}`);
     const seeker = seekerRes.data[0];
 
-    // Update post applicants
+    // update post applicants
     const updatedPost = { ...post };
     updatedPost.applicants = updatedPost.applicants || [];
     updatedPost.applicants.push({ id: seeker.id, firstName: seeker.firstName, lastName: seeker.lastName });
 
     await axios.put(`http://localhost:3001/posts/${post.id}`, updatedPost);
 
-    // Update seeker appliedPosts
+    // update seeker appliedPosts
     const updatedSeeker = { ...seeker };
     updatedSeeker.appliedPosts = updatedSeeker.appliedPosts || [];
     updatedSeeker.appliedPosts.push(post.id);
@@ -41,33 +43,106 @@ export default function SeekerHome() {
   };
 
   return (
-    <div className="posts-container">
-      {posts.map(post => (
-        <div key={post.id} className="post-card">
-          <div className="post-header">
-            {post.recruiterImage ? (
-              <img src={post.recruiterImage} alt="profile" className="profile-image" />
-            ) : <div className="profile-image-placeholder">{post.recruiterName[0]}</div>}
-            <div className="recruiter-info">
-              <p className="recruiter-name">{post.recruiterName}</p>
-              <p className="details">{post.recruiterCompany} - {post.recruiterDesignation}</p>
+    <div
+      style={{
+        position: "relative",
+        minHeight: "100vh",
+        padding: "20px",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      {/* Profile on top-right */}
+      <div style={{ position: "absolute", top: 20, right: 20 }}>
+        <button
+          onClick={() => setProfileOpen(!profileOpen)}
+          style={{
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          Profile
+        </button>
+        {profileOpen && <SeekerProfile setProfileOpen={setProfileOpen} />}
+      </div>
+
+      {/* Posts container */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "20px",
+          maxWidth: "800px",
+          margin: "0 auto",
+        }}
+      >
+        {posts.map(post => (
+          <div
+            key={post.id}
+            className="post-card"
+            style={{
+              background: "rgba(255, 255, 255, 0.2)", // transparent background
+              padding: "15px",
+              borderRadius: "10px",
+              boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+              backdropFilter: "blur(5px)", // adds glass effect
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              {post.recruiterImage ? (
+                <img
+                  src={post.recruiterImage}
+                  alt="profile"
+                  style={{ width: "50px", height: "50px", borderRadius: "50%" }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: "50px",
+                    height: "50px",
+                    borderRadius: "50%",
+                    background: "#ccc",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {post.recruiterName[0]}
+                </div>
+              )}
+              <div>
+                <p style={{ margin: 0, fontWeight: "bold" }}>{post.recruiterName}</p>
+                <p style={{ margin: 0, fontSize: "14px" }}>
+                  {post.recruiterCompany} - {post.recruiterDesignation}
+                </p>
+              </div>
             </div>
-          </div>
 
-          {post.jobDescription && <p className="job-desc">{post.jobDescription}</p>}
-          {post.jobImage && <img src={post.jobImage} alt="job" className="job-image" />}
+            <h3 style={{ marginTop: "10px" }}>{post.jobTitle}</h3>
+            <p>Skills Needed: {post.skills}</p>
+            <p>Experience Required: {post.experience} yrs</p>
+            <p>Openings: {post.openings}</p>
+            {post.jobDescription && <p>{post.jobDescription}</p>}
 
-          <div className="post-actions">
             <button
-              className="apply-btn"
               disabled={appliedPosts.includes(post.id)}
               onClick={() => handleApply(post)}
+              style={{
+                marginTop: "10px",
+                padding: "8px 15px",
+                borderRadius: "5px",
+                border: "none",
+                cursor: appliedPosts.includes(post.id) ? "not-allowed" : "pointer",
+                background: appliedPosts.includes(post.id) ? "#ccc" : "#0A66C2",
+                color: "#fff",
+              }}
             >
               {appliedPosts.includes(post.id) ? "Applied" : "Apply"}
             </button>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

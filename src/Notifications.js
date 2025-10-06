@@ -8,23 +8,22 @@ export default function Notifications() {
   const [selectedSeeker, setSelectedSeeker] = useState(null);
 
   useEffect(() => {
-    // fetch posts where applicants applied
-    axios.get("http://localhost:3001/posts").then(res => {
-      const notif = [];
-      res.data.forEach(post => {
-        (post.applicants || []).forEach(seeker => {
-          // seeker is object with id, name, bio, etc
-          notif.push({
-            id: `${post.id}_${seeker.id}`,
-            postId: post.id,
-            seeker,
-            postTitle: post.jobDescription || "your job"
-          });
+  // fetch posts where applicants applied
+  axios.get("http://localhost:3001/posts").then(res => {
+    const notif = [];
+    res.data.forEach(post => {
+      (post.applicants || []).forEach(seeker => {
+        notif.push({
+          id: `${post.id}_${seeker.id}`,
+          postId: post.id,
+          seeker,
+          postTitle: post.jobTitle || "your job"   // <-- changed here
         });
       });
-      setNotifications(notif);
     });
-  }, []);
+    setNotifications(notif);
+  });
+}, []);
 
   return (
     <div className="notifications-container" style={{ padding: "20px" }}>
